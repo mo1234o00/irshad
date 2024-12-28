@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مواقيت الصلاة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('ersha2.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Tajawal', sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            padding: 30px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 50px;
+            box-sizing: border-box;
+        }
+
+        .header h1 {
+            margin-bottom: 30px;
+            font-size: 30px;
+        }
+
+        .prayer-times div {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .contact-info a {
+            color: #ff9900;
+            text-decoration: none;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 50px;
+        }
+
+        .footer a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #444749;
+        }
+
+        .back-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #d6d1d0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .footer {
+                padding: 10px;
+            }
+
+            .footer a {
+                margin: 0 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>مواقيت الصلاة</h1>
+        </div>
+
+        <div id="prayer-times" class="prayer-times">
+            <!-- أوقات الصلاة ستظهر هنا -->
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/adhan@2.0.6/adhan.js"></script>
+        <script>
+            // بيانات ثابتة لأوقات الصلاة في حالة عدم الاتصال بالإنترنت
+            const staticPrayerTimes = {
+                fajr: { hours: 5, minutes: 0 },
+                dhuhr: { hours: 12, minutes: 0 },
+                asr: { hours: 15, minutes: 30 },
+                maghrib: { hours: 18, minutes: 0 },
+                isha: { hours: 19, minutes: 30 }
+            };
+
+            // إذا كان هناك اتصال بالإنترنت، احصل على الموقع الجغرافي وبيانات الصلاة
+            if (!navigator.onLine) {
+                // في حالة عدم وجود اتصال بالإنترنت، استخدم بيانات ثابتة
+                displayPrayerTimesStatic(staticPrayerTimes);
+            } else {
+                // في حالة وجود اتصال بالإنترنت، احصل على الموقع الجغرافي
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        const date = new Date();
+
+                        const prayerTimes = new adhan.PrayerTimes(
+                            new adhan.Coordinates(latitude, longitude),
+                            date
+                        );
+                        displayPrayerTimes(prayerTimes);
+                    });
+                } else {
+                    alert("المتصفح لا يدعم الحصول على الموقع الجغرافي.");
+                }
+            }
+
+            // دالة لعرض أوقات الصلاة الثابتة
+            function displayPrayerTimesStatic(times) {
+                const prayerTimesDiv = document.getElementById("prayer-times");
+                prayerTimesDiv.innerHTML = `
+                <div>الفجر: ${formatTime(times.fajr)}</div>
+                <div>الظهر: ${formatTime(times.dhuhr)}</div>
+                <div>العصر: ${formatTime(times.asr)}</div>
+                <div>المغرب: ${formatTime(times.maghrib)}</div>
+                <div>العشاء: ${formatTime(times.isha)}</div>
+            `;
+                showRemainingTime(times);  // لعرض الوقت المتبقي للصلاة
+                playAdhanSound();  // لتشغيل الصوت التجريبي
+            }
+
+            // دالة لعرض أوقات الصلاة من الموقع الجغرافي
+            function displayPrayerTimes(prayerTimes) {
+                const prayerTimesDiv = document.getElementById("prayer-times");
+                prayerTimesDiv.innerHTML = `
+                <div>الفجر: ${formatTime(prayerTimes.fajr)}</div>
+                <div>الظهر: ${formatTime(prayerTimes.dhuhr)}</div>
+                <div>العصر: ${formatTime(prayerTimes.asr)}</div>
+                <div>المغرب: ${formatTime(prayerTimes.maghrib)}</div>
+                <div>العشاء: ${formatTime(prayerTimes.isha)}</div>
+            `;
+                showRemainingTime(prayerTimes);  // لعرض الوقت المتبقي للصلاة
+                playAdhanSound();  // لتشغيل الصوت التجريبي
+            }
+
+            // دالة لتحويل الوقت إلى صيغة من ساعتين ودقيقتين
+            function formatTime(time) {
+                return `${time.hours}:${time.minutes < 10 ? '0' + time.minutes : time.minutes}`;
+            }
+
+            // دالة لعرض الوقت المتبقي على الصلاة القادمة
+            function showRemainingTime(prayerTimes) {
+                const now = new Date();
+                const nextPrayerTime = getNextPrayerTime(prayerTimes, now);
+                const timeDiff = nextPrayerTime - now;
+                const minutesLeft = Math.floor(timeDiff / (1000 * 60));
+
+                const remainingDiv = document.createElement('div');
+                remainingDiv.innerHTML = `<strong>باقي على الصلاة القادمة: ${minutesLeft} دقيقة</strong>`;
+                document.getElementById('prayer-times').appendChild(remainingDiv);
+            }
+
+            // دالة لحساب الوقت المتبقي للصلاة القادمة
+            function getNextPrayerTime(prayerTimes, now) {
+                const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+                for (let i = 0; i < prayers.length; i++) {
+                    const prayerTime = prayerTimes[prayers[i]];
+                    const prayerDate = new Date(now);
+                    prayerDate.setHours(prayerTime.hours);
+                    prayerDate.setMinutes(prayerTime.minutes);
+
+                    if (prayerDate > now) {
+                        return prayerDate;
+                    }
+                }
+                return new Date(now.getTime() + (1000 * 60 * 60 * 24));  // إذا انتهت كل أوقات الصلاة لهذا اليوم
+            }
+
+            // دالة لتشغيل الصوت التجريبي للأذان
+            function playAdhanSound() {
+                const audio = new Audio('azan.mp3');  // تأكد من إضافة ملف الأذان داخل مجلد المشروع
+                audio.play();
+            }
+        </script>
+
+        <div class="footer">
+            <p>
+                تابعنا على:
+                <a href="https://www.facebook.com/profile.php?id=100075844585561&mibextid=ZbWKwL"><img
+                        src="facebook.png" alt="فيسبوك" width="30" height="30"></a>
+                <a href="https://youtube.com/@cyber_senpai1?si=cN589g0DpZ5EOS_p"><img
+                        src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png"
+                        alt="يوتيوب" width="30" height="30"></a>
+                <a href="https://t.me/moalgezawy"><img src="telegram.webp" alt="تليجرام" width="30" height="30"></a>
+                <a href="https://x.com/moalgzawy?t=I_WKV4UogXvKDYEc2yZJ4g&s=09"><img src="x.png" alt="إكس" width="30"
+                        height="30"></a>
+            </p>
+            <p>تطوير بواسطة: <strong>مصطفى الجيزاوي</strong></p>
+            <p>&copy; 2024-2025 جميع الحقوق محفوظة</p>
+        </div>
+
+        <a href="informaton.html" class="back-btn">رجوع</a>
+</body>
+
+</html>
